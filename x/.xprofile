@@ -1,0 +1,22 @@
+export XDG_CONFIG_HOME="$HOME/.config"
+
+export QT_QPA_PLATFORMTHEME="qt5ct"
+export _JAVA_OPTIONS='-Dawt.useSystemAAFontSettings=on' 
+
+_battery_pipe=/tmp/.battery-pipe
+[[ -S $_battery_pipe ]] || mkfifo $_battery_pipe
+
+_volume_pipe=/tmp/.volume-pipe
+[[ -S $_volume_pipe ]] || mkfifo $_volume_pipe
+
+_ip_pipe=/tmp/.ip-pipe
+[[ -S $_ip_pipe ]] || mkfifo $_ip_pipe
+
+dunst &
+udiskie &
+redshift &
+emacs --daemon &
+mpd .config/mpd/mpd.conf &
+unclutter &
+udev-notify &
+/home/neo/bin/panel_pipes &

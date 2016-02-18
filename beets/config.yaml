@@ -1,0 +1,15 @@
+directory: ~/Beet
+library: ~/Beet/library.blb
+plugins: lyrics fetchart embedart replaygain chroma fromfilename the discogs missing copyartifacts bpd
+replaygain:
+    backend: gstreamer
+fetchart:
+        minwidth: 700
+        sources: coverart itunes amazon albumart wikipedia google
+convert:
+    never_convert_lossy_files: yes
+    format: vorbis
+    formats:
+        ogg:
+            command: ffmpeg -i $source -vn -codec:a libvorbis -qscale:a 4 $dest
+            extension: ogg

@@ -1,0 +1,44 @@
+Config {
+     font =         "xft:Sauce Code Pro:style=NerdFontComplete:bold:size=10:antialias=true"
+   , bgColor =      "#1d262a"
+   , fgColor =      "#ffffff"
+   , position =     TopW L 100
+
+   , sepChar =  "%"
+   , alignSep = "}{"
+   , template = " %UnsafeStdinReader% }{ %bpipe% %ipipe% %dynnetwork% %memory% %vpipe% %date% %kbd%"
+
+   , lowerOnStart =     False
+   , hideOnStart =      False
+   , allDesktops =      True
+   , overrideRedirect = True
+   , pickBroadest =     False
+   , persistent =       True
+   , commands = [
+          Run UnsafeStdinReader
+        , Run DynNetwork     [ "--template" , "\xf01b <tx>kB/s \xf01a <rx>kB/s"
+                             , "--Low"      , "1000"       -- units: kB/s
+                             , "--High"     , "5000"       -- units: kB/s
+                             , "--low"      , "#607D8B"
+                             , "--normal"   , "#F8BBD0"
+                             , "--high"     , "#C2185B"
+                             ] 10
+
+        , Run Memory         [ "--template" ,"<used>M"
+                             , "--Low"      , "2048"        -- units: %
+                             , "--High"     , "4096"        -- units: %
+                             , "--low"      , "#607D8B"
+                             , "--normal"   , "#F8BBD0"
+                             , "--high"     , "#C2185B"
+                             ] 10
+
+        , Run Date           "%F %T" "date" 10
+
+        , Run Kbd            [ ("cz(qwerty)" , "<fc=#607D8B>CZ</fc>")
+                             , ("us"         , "<fc=#C2185B>EN</fc>")
+                             ]
+        , Run PipeReader "/tmp/.volume-pipe" "vpipe"
+        , Run PipeReader "/tmp/.battery-pipe" "bpipe"
+        , Run PipeReader "/tmp/.ip-pipe" "ipipe"
+        ]
+   }
