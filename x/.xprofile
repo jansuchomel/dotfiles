@@ -9,10 +9,11 @@ _battery_pipe=/tmp/.battery-pipe
 _volume_pipe=/tmp/.volume-pipe
 [[ -S $_volume_pipe ]] || mkfifo $_volume_pipe
 
-_ip_pipe=/tmp/.ip-pipe
-[[ -S $_ip_pipe ]] || mkfifo $_ip_pipe
+_mpd_pipe=/tmp/.mpd-pipe
+[[ -S $_mpd_pipe ]] || mkfifo $_mpd_pipe
 
 dunst &
+lxqt-policykit-agent&
 udiskie &
 redshift &
 emacs --daemon &

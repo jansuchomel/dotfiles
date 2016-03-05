@@ -6,17 +6,17 @@ Config {
 
    , sepChar =  "%"
    , alignSep = "}{"
-   , template = " %UnsafeStdinReader% }{ %bpipe% %ipipe% %dynnetwork% %memory% %vpipe% %date% %kbd%"
+   , template = " %UnsafeStdinReader% }{ %mpipe% > %bpipe% > %dynnetwork% > %memory% > %vpipe% > %date% > %kbd%"
 
-   , lowerOnStart =     False
-   , hideOnStart =      False
-   , allDesktops =      True
-   , overrideRedirect = True
-   , pickBroadest =     False
-   , persistent =       True
+   , lowerOnStart =     False    -- send to bottom of window stack on start
+   , hideOnStart =      False   -- start with window unmapped (hidden)
+   , allDesktops =      True    -- show on all desktops
+   , overrideRedirect = True    -- set the Override Redirect flag (Xlib)
+   , pickBroadest =     False   -- choose widest display (multi-monitor)
+   , persistent =       True    -- enable/disable hiding (True = disabled)
    , commands = [
           Run UnsafeStdinReader
-        , Run DynNetwork     [ "--template" , "\xf01b <tx>kB/s \xf01a <rx>kB/s"
+        , Run DynNetwork     [ "--template" , "<tx>kB/s <rx>kB/s"
                              , "--Low"      , "1000"       -- units: kB/s
                              , "--High"     , "5000"       -- units: kB/s
                              , "--low"      , "#607D8B"
@@ -39,6 +39,6 @@ Config {
                              ]
         , Run PipeReader "/tmp/.volume-pipe" "vpipe"
         , Run PipeReader "/tmp/.battery-pipe" "bpipe"
-        , Run PipeReader "/tmp/.ip-pipe" "ipipe"
+        , Run PipeReader "/tmp/.mpd-pipe" "mpipe"
         ]
    }
