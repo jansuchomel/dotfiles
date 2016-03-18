@@ -12,6 +12,8 @@ import           XMonad.Layout.BinarySpacePartition
 import           XMonad.Layout.Spacing
 import           XMonad.Layout.SimpleFloat
 import           XMonad.Actions.PhysicalScreens
+import           XMonad.Prompt
+import           XMonad.Prompt.Shell
 
 import qualified XMonad.StackSet as S
 
@@ -48,10 +50,11 @@ myNormalBorderColor  = "#212121"
 myFocusedBorderColor :: String
 myFocusedBorderColor = "#C2185B"
 
-myBSP = (smartBorders . ( smartSpacing 3 )) emptyBSP
+myBSP = (smartBorders . smartSpacing 3 ) emptyBSP
 myTabbed = noBorders ( tabbedBottom shrinkText defaultTheme {fontName="xft:Source Code Pro-9"} )
 myLayoutHook = myBSP ||| myTabbed ||| simpleFloat
 
+myManageHook :: ManageHook
 myManageHook = composeAll
       [
         manageDocks,
@@ -75,6 +78,19 @@ myPP =  defaultPP
   }
 
 
+myXPC :: XPConfig
+myXPC = defaultXPConfig
+  {
+      font = "xft:Source Code Pro-9"
+    , historySize = 100
+    , historyFilter = deleteConsecutive
+    , position = Top
+    , fgColor = "#ffffff"
+    , bgColor = "#1d262a"
+    , promptBorderWidth = 0
+  }
+
+
 myBar :: String
 myBar = "xmobar"
 
@@ -92,7 +108,7 @@ defaults = desktopConfig {
         workspaces         = myWorkspaces,
         normalBorderColor  = myNormalBorderColor,
         focusedBorderColor = myFocusedBorderColor,
-        layoutHook = lessBorders OnlyFloat $ avoidStruts $ myLayoutHook,
+        layoutHook = lessBorders OnlyFloat $ avoidStruts myLayoutHook,
         handleEventHook    = fullscreenEventHook,
         manageHook = myManageHook,
         modMask = mod4Mask
@@ -104,12 +120,12 @@ defaults = desktopConfig {
            , ((myModMask .|. shiftMask,   xK_h         ), sendMessage $ ExpandTowards L)
            , ((myModMask .|. shiftMask,   xK_j         ), sendMessage $ ExpandTowards D)
            , ((myModMask .|. shiftMask,   xK_k         ), sendMessage $ ExpandTowards U)
+           -- , ((myModMask,                 xK_b         ), sendMessage ToggleStruts)
            , ((0,                         0x1008FF02   ), spawn "exe=`xbacklight -inc 20`")
            , ((0,                         0x1008FF03   ), spawn "exe=`xbacklight -dec 20`")
            , ((0,                         0x1008FF11   ), spawn "exe=`pulsemixer --id 1 --change-volume -5`")
            , ((0,                         0x1008FF13   ), spawn "exe=`pulsemixer --id 1 --change-volume +5`")
-           , ((myModMask,                 xK_d         ), spawn "rofi -show run -terminal termite")
-           , ((myModMask,                 xK_p         ), spawn "rofi -show window")
+           , ((myModMask,                 xK_d         ), shellPrompt myXPC)
            , ((myModMask,                 xK_Down      ), spawn "mpc toggle")
            , ((myModMask,                 xK_Left      ), spawn "mpc prev")
            , ((myModMask,                 xK_Right     ), spawn "mpc next")
@@ -120,8 +136,6 @@ defaults = desktopConfig {
            , ((myModMask,                 xK_Tab       ), onNextNeighbour S.view)
            , ((myModMask .|. shiftMask,   xK_BackSpace ), onPrevNeighbour S.shift)
            , ((myModMask .|. shiftMask,   xK_Tab       ), onNextNeighbour S.shift)
-           , ((myModMask,                 xK_m         ), spawn "clerk")
-           , ((myModMask,                 xK_x         ), spawn "rofi-pass")
            ]
            ++
            map workspaceSwitch myWorkspacesCodes
@@ -132,5 +146,4 @@ defaults = desktopConfig {
 
 
 main :: IO ()
-main = do
- xmonad =<< ((statusBar myBar myPP toggleStrutsKey) . ewmh) defaults -- haskell function composition?
+main = xmonad =<< (statusBar myBar myPP toggleStrutsKey . ewmh) defaults
