@@ -6,7 +6,7 @@ Config {
 
    , sepChar =  "%"
    , alignSep = "}{"
-   , template = " %UnsafeStdinReader% }{ %mpipe% > %bpipe% > %dynnetwork% > %memory% > %vpipe% > %date% > %kbd%"
+   , template = " %UnsafeStdinReader% }{ %bpipe% > %dynnetwork% > %memory% > %vpipe% > %date% > %kbd%"
 
    , lowerOnStart =     False    -- send to bottom of window stack on start
    , hideOnStart =      False   -- start with window unmapped (hidden)
@@ -39,6 +39,5 @@ Config {
                              ]
         , Run PipeReader "/tmp/.volume-pipe" "vpipe"
         , Run PipeReader "/tmp/.battery-pipe" "bpipe"
-        , Run PipeReader "/tmp/.mpd-pipe" "mpipe"
         ]
    }
