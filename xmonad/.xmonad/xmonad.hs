@@ -2,22 +2,25 @@ import           XMonad
 
 import           XMonad.Util.EZConfig
 
-import           XMonad.Hooks.DynamicLog
-import           XMonad.Hooks.ManageDocks
-import           XMonad.Util.WorkspaceCompare
-import           XMonad.Hooks.EwmhDesktops
-import           XMonad.Layout.NoBorders
-import           XMonad.Layout.Tabbed
-import           XMonad.Layout.BinarySpacePartition
-import           XMonad.Layout.Spacing
-import           XMonad.Layout.SimpleFloat
 import           XMonad.Actions.PhysicalScreens
+import           XMonad.Hooks.DynamicLog
+import           XMonad.Hooks.EwmhDesktops
+import           XMonad.Hooks.ManageDocks
+import           XMonad.Layout.BinarySpacePartition
+import           XMonad.Layout.NoBorders
+import           XMonad.Layout.SimpleFloat
+import           XMonad.Layout.Spacing
+import           XMonad.Layout.Tabbed
 import           XMonad.Prompt
 import           XMonad.Prompt.Shell
+import           XMonad.Prompt.ConfirmPrompt
+import           XMonad.Util.WorkspaceCompare
 
-import qualified XMonad.StackSet as S
+import qualified XMonad.StackSet                    as S
 
 import           XMonad.Config.Desktop
+
+import           System.Exit(exitSuccess)
 
 clickable :: Show a => (a, String, t, t1) -> String
 clickable (index, name, _, _) = "<action=wmctrl -s " ++ show index ++ ">" ++ name ++ "</action>"
@@ -58,7 +61,6 @@ myManageHook :: ManageHook
 myManageHook = composeAll
       [
         manageDocks,
-        resource =? "rofi" --> doFloat,
         className =? "mpv" --> doFloat,
         className =? "Pavucontrol" --> doFloat,
         (className =? "Firefox" <&&> resource =? "Dialog") --> doFloat
@@ -83,7 +85,6 @@ myXPC = defaultXPConfig
   {
       font = "xft:Source Code Pro-9"
     , historySize = 100
-    , historyFilter = deleteConsecutive
     , position = Top
     , fgColor = "#ffffff"
     , bgColor = "#1d262a"
@@ -98,9 +99,11 @@ toggleStrutsKey :: XConfig t -> (KeyMask, KeySym)
 toggleStrutsKey XConfig {XMonad.modMask = modMask} = (modMask, xK_b)
 
 workspaceSwitch :: Show a => (a, String, t, t1) -> ((KeyMask, t1), X ())
-workspaceSwitch (index, name, key, code) = ( (myModMask, code), windows $ S.greedyView ( clickable (index, name, key, code)) )
+workspaceSwitch (index, name, key, code) =
+  ( (myModMask, code), windows $ S.greedyView ( clickable (index, name, key, code)) )
 workspaceMove :: Show a => (a, String, t, t1) -> ((KeyMask, t1), X ())
-workspaceMove   (index, name, key, code) = ( (myModMask .|. shiftMask, code), windows $ S.shift ( clickable (index, name, key, code)) )
+workspaceMove   (index, name, key, code) =
+  ( (myModMask .|. shiftMask, code), windows $ S.shift ( clickable (index, name, key, code)) )
 
 defaults = desktopConfig {
         terminal           = myTerminal,
@@ -136,6 +139,7 @@ defaults = desktopConfig {
            , ((myModMask,                 xK_Tab       ), onNextNeighbour S.view)
            , ((myModMask .|. shiftMask,   xK_BackSpace ), onPrevNeighbour S.shift)
            , ((myModMask .|. shiftMask,   xK_Tab       ), onNextNeighbour S.shift)
+           , ((myModMask .|. shiftMask,   xK_q         ), confirmPrompt myXPC "exit" $ io exitSuccess)
            ]
            ++
            map workspaceSwitch myWorkspacesCodes
