@@ -12,18 +12,15 @@ import           XMonad.Layout.SimpleFloat
 import           XMonad.Layout.Spacing
 import           XMonad.Layout.Tabbed
 import           XMonad.Prompt
-import           XMonad.Prompt.Shell
 import           XMonad.Prompt.ConfirmPrompt
+import           XMonad.Prompt.Shell
 import           XMonad.Util.WorkspaceCompare
 
 import qualified XMonad.StackSet                    as S
 
 import           XMonad.Config.Desktop
 
-import           System.Exit(exitSuccess)
-
-clickable :: Show a => (a, String, t, t1) -> String
-clickable (index, name, _, _) = "<action=wmctrl -s " ++ show index ++ ">" ++ name ++ "</action>"
+import           System.Exit                        (exitSuccess)
 
 layoutFormat :: String -> String
 layoutFormat "SmartSpacing 3 BSP" = "BSP"
@@ -39,14 +36,30 @@ myBorderWidth   = 2
 myTerminal :: String
 myTerminal = "termite"
 
-myWorkspacesCodes :: [(Integer, String, String, KeySym)]
-myWorkspacesCodes = [(0, "\xf120", "1", 0x0031), (1, "\xf269", "2", 0x0032), (2, "\xf02d", "3", 0x0033), (3, "\xf07c", "4", 0x0034),
-                     (4, "\xf16a", "5", 0x0035), (5, "\xf121", "6", 0x0036), (6, "\xf27b", "7", 0x0037),
-                     (7, "8", "8", 0x0038), (8, "9", "9", 0x0039), (9, "0", "0", 0x0030), (10, "-", "minus", 0x002d), (11, "=", "equal", 0x003d)]
+-- WS index name key clickable
+data WS = WS Integer String KeySym String
 
-myWorkspaces :: [String]
-myWorkspaces = map clickable myWorkspacesCodes
+instance Show WS where
+    show ( WS _ _ _ clickable ) = clickable
 
+makeClickable :: Integer -> String -> String
+makeClickable index name = "<action=wmctrl -s " ++ show index ++ ">" ++ name ++ "</action>"
+
+makeWS :: Integer -> String -> KeySym -> WS
+makeWS index name key = WS index name key ( makeClickable index name )
+
+tripleToWS :: (Integer, String, KeySym) -> WS
+tripleToWS (index, name, key) = makeWS index name key
+
+myWorkSpaceNames :: [String]
+myWorkSpaceNames = ["sys", "web", "read", "fs", "play", "code", "seven", "eight", "nine",
+                    "ten", "-", "="]
+
+myWorkSpaceKeys :: [KeySym]
+myWorkSpaceKeys = [xK_1, xK_2, xK_3, xK_4, xK_5, xK_6, xK_7, xK_8, xK_9, xK_0, xK_minus, xK_equal]
+
+myWorkSpaces :: [WS]
+myWorkSpaces = map tripleToWS $ zip3 [0..] myWorkSpaceNames myWorkSpaceKeys
 
 myNormalBorderColor :: String
 myNormalBorderColor  = "#212121"
@@ -54,7 +67,7 @@ myFocusedBorderColor :: String
 myFocusedBorderColor = "#C2185B"
 
 myBSP = (smartBorders . smartSpacing 3 ) emptyBSP
-myTabbed = noBorders ( tabbedBottom shrinkText defaultTheme {fontName="xft:Source Code Pro-9"} )
+myTabbed = noBorders ( tabbedBottom shrinkText defaultTheme {fontName="xft:Fira Mono-11"} )
 myLayoutHook = myBSP ||| myTabbed ||| simpleFloat
 
 myManageHook :: ManageHook
@@ -63,7 +76,8 @@ myManageHook = composeAll
         manageDocks,
         className =? "mpv" --> doFloat,
         className =? "Pavucontrol" --> doFloat,
-        (className =? "Firefox" <&&> resource =? "Dialog") --> doFloat
+        (className =? "Firefox" <&&> resource =? "Dialog") --> doFloat,
+        (className =? "Firefox-developer-edition" <&&> resource =? "Dialog") --> doFloat
       ]
 
 
@@ -71,9 +85,9 @@ myPP :: PP
 myPP =  defaultPP
   {
     ppHiddenNoWindows = const ""
-  , ppHidden          = xmobarColor "#727272" "" . wrap "" " "
-  , ppTitle           = xmobarColor "#ffffff"  "" . wrap " " ""
-  , ppCurrent         = xmobarColor "#C2185B" "" . wrap "" " "
+  , ppHidden          = xmobarColor "#727272" ""
+  , ppTitle           = xmobarColor "#ffffff"  ""
+  , ppCurrent         = xmobarColor "#C2185B" ""
   , ppSort            = getSortByIndex
   , ppLayout          = layoutFormat
   , ppSep             = " "
@@ -83,7 +97,7 @@ myPP =  defaultPP
 myXPC :: XPConfig
 myXPC = defaultXPConfig
   {
-      font = "xft:Source Code Pro-9"
+      font = "xft:Fira Mono-11"
     , historySize = 100
     , position = Top
     , fgColor = "#ffffff"
@@ -98,17 +112,17 @@ myBar = "xmobar"
 toggleStrutsKey :: XConfig t -> (KeyMask, KeySym)
 toggleStrutsKey XConfig {XMonad.modMask = modMask} = (modMask, xK_b)
 
-workspaceSwitch :: Show a => (a, String, t, t1) -> ((KeyMask, t1), X ())
-workspaceSwitch (index, name, key, code) =
-  ( (myModMask, code), windows $ S.greedyView ( clickable (index, name, key, code)) )
-workspaceMove :: Show a => (a, String, t, t1) -> ((KeyMask, t1), X ())
-workspaceMove   (index, name, key, code) =
-  ( (myModMask .|. shiftMask, code), windows $ S.shift ( clickable (index, name, key, code)) )
+workSpaceSwitch :: WS -> ((KeyMask, KeySym), X ())
+workSpaceSwitch (WS _ _ key clickable) =
+    ( (myModMask, key), windows $ S.greedyView clickable )
+workSpaceMove :: WS -> ((KeyMask, KeySym), X ())
+workSpaceMove (WS _ _ key clickable) =
+    ( (myModMask .|. shiftMask, key), windows $ S.shift clickable )
 
 defaults = desktopConfig {
         terminal           = myTerminal,
         borderWidth        = myBorderWidth,
-        workspaces         = myWorkspaces,
+        workspaces         = map show myWorkSpaces,
         normalBorderColor  = myNormalBorderColor,
         focusedBorderColor = myFocusedBorderColor,
         layoutHook = lessBorders OnlyFloat $ avoidStruts myLayoutHook,
@@ -142,9 +156,9 @@ defaults = desktopConfig {
            , ((myModMask .|. shiftMask,   xK_q         ), confirmPrompt myXPC "exit" $ io exitSuccess)
            ]
            ++
-           map workspaceSwitch myWorkspacesCodes
+           map workSpaceSwitch myWorkSpaces
            ++
-           map workspaceMove myWorkspacesCodes
+           map workSpaceMove myWorkSpaces
     )
 
 
