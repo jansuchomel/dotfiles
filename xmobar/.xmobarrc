@@ -1,5 +1,5 @@
 Config {
-     font =         "xft:Sauce Code Pro:style=NerdFontComplete:bold:size=10:antialias=true"
+     font =         "xft:Fira Mono:size=12:antialias=true"
    , bgColor =      "#1d262a"
    , fgColor =      "#ffffff"
    , position =     TopW L 100
